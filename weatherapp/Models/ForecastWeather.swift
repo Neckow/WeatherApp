@@ -1,5 +1,5 @@
 //
-//  ForecastDayWeather.swift
+//  ForecastWeather.swift
 //  weatherapp
 //
 //  Created by Loic B on 04/05/2018.
@@ -8,9 +8,8 @@
 
 import Foundation
 
-struct ForecastDayWeather: Codable {
-    let id: Int
-    let icon: String?
-    let temp_min: Float
-    let temp_max: Float
+struct ForecastWeather: Codable {
+    let dt: String
+    let temp_min: String
+    let temp_max: String
 }

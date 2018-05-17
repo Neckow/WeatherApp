@@ -7,3 +7,11 @@
 //
 
 import Foundation
+
+struct CurrentWeather: Codable {
+    let id: Int
+    let mainWeather: String
+    let description: String
+    let icon: String?
+    let temp: Float
+}

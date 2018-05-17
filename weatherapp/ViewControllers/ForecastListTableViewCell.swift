@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ForecastListTableViewCell: UITableViewCell { //externalise
+class ForecastListTableViewCell: UITableViewCell {
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var detailLabel: UILabel!
     

@@ -7,85 +7,70 @@
 //
 
 import UIKit
-//import Alamofire
+import Alamofire
+import SwiftyJSON
+import RxSwift
+import RxCocoa
 
 class ForecastListViewController: UIViewController {
     
+    let disposeBag = DisposeBag()
   
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    lazy var viewModel: ForecastListViewModel = {   //cf
+    lazy var viewModel: ForecastListViewModel = {
         return ForecastListViewModel()
     }()
-    
-    /* Day - Min.Temp. - Max. Temp */
-    let weatherData = [
-    ("Monday", "3", "12"),
-    ("Tuesday", "4", "12"),
-    ("Wednesday", "5", "12"),
-    ("Thursday", "6", "12"),
-    ("Friday", "6", "12"),
-    ("Saturday", "7", "12"),
-    ("Sunday", "1", "12") ]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-    initVM()
+        initView()
         
+        initVM()
+        
+        
+        //print(viewModel.DatetimeToDate(datetime: 1536461200))
+        //print(viewModel.getDayOfWeek("2018/05/15") ?? "2018/05/16")
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.viewModel.fetchData()
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    func initView() {
+        self.navigationItem.title = "Popular"
+        
+        tableView.estimatedRowHeight = 150
+        tableView.rowHeight = UITableViewAutomaticDimension
     }
     
     func initVM(){
-        viewModel.updateLoadingStatus = { [weak self] () in
-            DispatchQueue.main.async {
-                let isLoading = self?.viewModel.isLoading ?? false
-                if isLoading {
+        viewModel.isLoading
+            .asDriver()
+            .drive(onNext: { [weak self] isLoading in
+                if isLoading ?? false {
                     self?.activityIndicator.startAnimating()
                     self?.tableView.alpha = 0.0
-                }else {
+                } else {
                     self?.activityIndicator.stopAnimating()
                     self?.tableView.alpha = 1.0
                 }
-            }
-        }
+            })
+            .disposed(by: disposeBag)
         
-        viewModel.reloadTableViewClosure = { [weak self] () in
-            DispatchQueue.main.async {
-                self?.tableView.reloadData()
+        viewModel.cellViewModels
+            .asObservable()
+            .bind(to: tableView.rx.items(cellIdentifier: "forecastCell")) {
+                (_, model, cell) in
+                (cell as? ForecastListTableViewCell)?.configure(with: model)
             }
-        }
-    }
-
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+            .disposed(by: disposeBag)
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.numberOfCells
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-       guard let cell = tableView.dequeueReusableCell(withIdentifier: "forecastCell", for: indexPath) as? PhotoListTableViewCell else { fatalError("Cell not exists in storyboard")}
-        
-        let cellVM = viewModel.getCellViewModel( at: indexPath )
-        
-        //let(day, minTmp, maxTmp) = weatherData[indexPath.row]
-        cell.titleLabel.text = cellVM.day
-        cell.detailLabel.text = cellVM.temp_min+" "+cellVM.temp_max
-        return cell
-    }
 }
 
-extension ForecastListViewController : 
 
-class PhotoListTableViewCell: UITableViewCell {
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var detailLabel: UILabel!
-}
 

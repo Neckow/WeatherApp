@@ -7,3 +7,13 @@
 //
 
 import Foundation
+
+struct CurrentWeatherInformation: Codable {
+    let id: Int
+    let sunrise: String?
+    let sunset: String?
+    let cloud: Int
+    let rain: Int
+    let humidity: Int
+    let pression: Int
+}
