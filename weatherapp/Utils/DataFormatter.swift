@@ -9,8 +9,7 @@
 import Foundation
 
 protocol DataFormatter  {
-   // func DatetimeToDate(datetime: Double?)  -> String
-    func getDayOfWeek(_ today:String) -> Int?
+    func datetimeToDate(datetime: Double?) -> Date
 }
 
 

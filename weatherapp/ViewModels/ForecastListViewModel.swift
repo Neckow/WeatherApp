@@ -24,7 +24,7 @@ class ForecastListViewModel {
         setup()
     }
     
-    // Array Model instance
+    // Array Model instance (old way)
 //    var forecastWeathers : [ForecastWeather] = [ForecastWeather]() {
 //        didSet {
 //            cellViewModels = formatToViewModel(forecastWeathers)
@@ -59,12 +59,14 @@ class ForecastListViewModel {
             }
             
             let forecastWeatherList = JSON(value)["list"].array?.map { json -> ForecastWeather in
-                ForecastWeather( dt: json["dt"].stringValue,
+                ForecastWeather( dt: self.datetimeToDate(datetime: json["dt"].doubleValue),
                                  temp_min: json["main"]["temp_min"].stringValue,
                                  temp_max: json["main"]["temp_max"].stringValue )
             }
-            
-            self.forecasWeathers.value = forecastWeatherList!
+            guard let list = forecastWeatherList else {
+                return
+            }
+            self.forecasWeathers.value = list
         }
     }
     
@@ -81,30 +83,23 @@ class ForecastListViewModel {
     var updateLoadingStatus: (()->())?
 }
 
-//extension ForecastListViewModel: DataFormatter {
-//
-////    func DatetimeToDate(datetime: Double?)  -> String {
-////        if  let  timeResult = (datetime) {
-////            let date = Date(timeIntervalSince1970: timeResult)
-////            let dateFormatter = DateFormatter()
-////
-////            dateFormatter.dateStyle = DateFormatter.Style.short //Set date style
-////            dateFormatter.locale = Locale(identifier: "fr_FR")
-//////            dateFormatter.timeZone = TimeZone()
-////
-////            return dateFormatter.string(from: date)
-////        }
-////        return "34/34/34"
-////    }
-//    func getDayOfWeek(_ today: String) -> Int? {
-//        let formatter  = DateFormatter()
-//        formatter.dateFormat = "yyyy-MM-dd"
-//        guard let todayDate = formatter.date(from: today) else { return nil }
-//        let myCalendar = Calendar(identifier: .gregorian)
-//        let weekDay = myCalendar.component(.weekday, from: todayDate)
-//        return weekDay
-//    }
-//}
+extension ForecastListViewModel {
+
+    func datetimeToDate(datetime: Double?) -> String {
+        guard let datetime = datetime else {
+            return ""
+        }
+          
+        let date = Date(timeIntervalSince1970: datetime)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .none
+        dateFormatter.dateFormat = " EEE dd.MM"
+        let stringDate = dateFormatter.string(from: date)
+        
+        return stringDate
+    }
+}
 
 extension ForecastListViewModel {
     private func setup() {

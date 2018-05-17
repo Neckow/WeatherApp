@@ -30,9 +30,6 @@ class ForecastListViewController: UIViewController {
         
         initVM()
         
-        
-        //print(viewModel.DatetimeToDate(datetime: 1536461200))
-        //print(viewModel.getDayOfWeek("2018/05/15") ?? "2018/05/16")
     }
     
     override func viewWillAppear(_ animated: Bool) {
