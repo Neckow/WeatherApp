@@ -13,7 +13,7 @@ class ForecastListTableViewCell: UITableViewCell {
     @IBOutlet weak var detailLabel: UILabel!
     
     func configure(with viewModel: ForecastListCellViewModel) {
-        self.titleLabel.text = viewModel.day
-        self.detailLabel.text = viewModel.temp_min!+" "+viewModel.temp_max!
+        self.titleLabel.text = String(viewModel.day)
+        self.detailLabel.text = "\(viewModel.temp_min) \(viewModel.temp_max)"
     }
 }

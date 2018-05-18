@@ -9,7 +9,34 @@
 import Foundation
 
 struct ForecastWeather: Codable {
-    let dt: String
-    let temp_min: String
-    let temp_max: String
+    let dt: Double
+    let temp_min: Double
+    let temp_max: Double
+    
+    var dayOfWeek : String {
+        get {
+            return datetimeToDate(datetime: dt)
+        }
+        set {
+        }
+    }
+    
+}
+
+extension ForecastWeather {
+    func datetimeToDate(datetime: Double?) -> String {
+        guard let datetime = datetime else {
+            return ""
+        }
+        
+        let date = Date(timeIntervalSince1970: datetime)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .none
+        dateFormatter.dateFormat = "EEEE" // put in cache
+        let stringDate = dateFormatter.string(from: date)
+        
+        return stringDate
+    }
+
 }

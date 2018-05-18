@@ -59,14 +59,30 @@ class ForecastListViewModel {
             }
             
             let forecastWeatherList = JSON(value)["list"].array?.map { json -> ForecastWeather in
-                ForecastWeather( dt: self.datetimeToDate(datetime: json["dt"].doubleValue),
-                                 temp_min: json["main"]["temp_min"].stringValue,
-                                 temp_max: json["main"]["temp_max"].stringValue )
+                    ForecastWeather( dt: json["dt"].doubleValue, // to convert into string
+                                     temp_min: json["main"]["temp_min"].doubleValue,
+                                     temp_max: json["main"]["temp_max"].doubleValue )
             }
+            
             guard let list = forecastWeatherList else {
                 return
             }
-            self.forecasWeathers.value = list
+            
+            let grouped = list.groupBy(\.dayOfWeek)
+
+            let final: [ForecastWeather] = grouped.compactMap {                 //ask for detail
+                guard let dt = $0.value.map ({ $0.dt }).min(),
+                      let temp_min = $0.value.map ({ $0.temp_min }).min(),
+                      let temp_max = $0.value.map ({ $0.temp_max }).max() else {
+                        return nil
+                }
+                return ForecastWeather(
+                                dt: dt,
+                                temp_min: temp_min,
+                                temp_max: temp_max)
+            }.sorted(by: { $0.dt < $1.dt })
+        
+            self.forecasWeathers.value = final
         }
     }
     
@@ -78,51 +94,48 @@ class ForecastListViewModel {
         return forecastCellVM
     }
     
+    private func setup() {
+        self.forecasWeathers
+            .asObservable()
+            .subscribe(onNext: { [weak self] weather in
+                guard let strongSelf = self else { return }
+                strongSelf.cellViewModels.value = strongSelf.formatToViewModel(weather)
+            }).disposed(by: disposeBag)
+    }
+    
     var reloadTableViewClosure: (()->())?
     var showAlertClosure: (()->())?
     var updateLoadingStatus: (()->())?
 }
 
-extension ForecastListViewModel {
-
-    func datetimeToDate(datetime: Double?) -> String {
-        guard let datetime = datetime else {
-            return ""
-        }
-          
-        let date = Date(timeIntervalSince1970: datetime)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .short
-        dateFormatter.timeStyle = .none
-        dateFormatter.dateFormat = " EEE dd.MM"
-        let stringDate = dateFormatter.string(from: date)
-        
-        return stringDate
-    }
-}
-
-extension ForecastListViewModel {
-    private func setup() {
-        self.forecasWeathers
-            .asObservable()
-            .subscribe(onNext: { [weak self] weather in
-            guard let strongSelf = self else { return }
-                strongSelf.cellViewModels.value = strongSelf.formatToViewModel(weather)
-        }).disposed(by: disposeBag)
-    }
-    
-}
-
 struct ForecastListCellViewModel {
-    let day: String?
-    let temp_min: String?
-    let temp_max: String?
+    let day: String
+    let temp_min: Double
+    let temp_max: Double
 }
 
 extension ForecastListCellViewModel {
     init(model: ForecastWeather) {
-        self.day = model.dt
+        self.day = model.dayOfWeek   //number formatter
         self.temp_min = model.temp_min
         self.temp_max = model.temp_max
+    }
+}
+
+extension Sequence {
+    public func groupBy<T: Hashable>(_ groupAttribute: KeyPath<Element, T>) -> [T: [Element]] {
+        var result: [T: [Element]] = [:]
+        
+        for value in self {
+            let attribute = value[keyPath: groupAttribute]
+            
+            if result.keys.contains(attribute) {
+                result[attribute]?.append(value)
+            } else {
+                result[attribute] = [value]
+            }
+        }
+        
+        return result
     }
 }
